@@ -37,18 +37,18 @@ df <- df_model %>%
   dplyr::select(BES_ID, DYR_ID, PARITY, BREED, HERDTYPE, DIM, logSCC, 
                 MILK, IMI, DRY_TREAT, PCR_TEST, RES_MAJOR, OTHER_AB, TEAT_TREAT)
 
-# CONVENTIONEL, Holstein, Parity 2:
+# eco, Holstein, Parity 2:
 df <- df %>% 
   filter(PCR_TEST == 1) %>%
   filter(BREED == 1) %>%
   filter(PARITY == 2) %>%
-  filter(HERDTYPE == 1) %>%
+  filter(HERDTYPE == 0) %>%
   filter(DIM < 306) %>%
   dplyr::select(BES_ID, DYR_ID, HERDTYPE, PARITY, BREED, DIM, logSCC, 
                 MILK, RES_MAJOR)
 
-dplyr::n_distinct(df$BES_ID) # 1282
-dplyr::n_distinct(df$DYR_ID) # 94096
+dplyr::n_distinct(df$BES_ID) # 160
+dplyr::n_distinct(df$DYR_ID) # 7327
 
 #----------------------------------------------------------------------
 # RES major POS vs NEg
@@ -83,13 +83,13 @@ Theta_pos <- boo_pos$coefboot
 # Model: logSCC ~ a + b * DIM + exp(-(exp(k)) * DIM)*d, data = df_boo2
 fun <- function(DIM, theta) theta["a"] + theta["b"]*DIM + exp(-(exp(theta["k"]) * DIM)*theta["d"])
 
-# X axis (DIM alredy set to 0-305 days)
+# Points where to evaluate the model
 x_eval <- seq(min(df_pos$DIM), max(df_pos$DIM), length.out = 100)
 
 # Matrix with the predictions
 Pred_pos <- apply(Theta_pos, 1, function(theta) fun(x_eval, theta))
 
-# Packing estimates pre plotting
+# Pack the estimates for plotting
 Estims_pos <- cbind(
   x = x_eval, 
   as.data.frame(t(apply(Pred_pos, 1, function(y_est) c(
@@ -99,7 +99,6 @@ Estims_pos <- cbind(
   ))))
 )
 
-# ggplot with wilmink curve created with output parameters
 p_pos <- ggplot(data = Estims_pos, aes(x = x, y = median_est, ymin = ci_lower_est, ymax = ci_upper_est)) + 
   geom_ribbon(alpha = 0.7, fill = "grey") + 
   geom_line(size = rel(0.5), colour = "darkgreen") + 
@@ -144,13 +143,13 @@ Theta_neg <- boo_neg$coefboot
 # Model: logSCC ~ a + b * DIM + exp(-(exp(k)) * DIM)*d, data = df_boo2
 fun <- function(DIM, theta) theta["a"] + theta["b"]*DIM + exp(-(exp(theta["k"]) * DIM)*theta["d"])
 
-# X axis (DIM alredy set to 0-305 days)
+# Defining x axis
 x_eval <- seq(min(df_neg$DIM), max(df_neg$DIM), length.out = 100)
 
 # prediction mtrix
 Pred_neg <- apply(Theta_neg, 1, function(theta) fun(x_eval, theta))
 
-# Packing estimates pre plotting
+# Pack the estimates for plotting
 Estims_neg <- cbind(
   x = x_eval, 
   as.data.frame(t(apply(Pred_neg, 1, function(y_est) c(
@@ -160,8 +159,10 @@ Estims_neg <- cbind(
   ))))
 )
 
-# ggplot with wilmink curve created with output parameters
 p_neg <- ggplot(data = Estims_neg, aes(x = x, y = median_est, ymin = ci_lower_est, ymax = ci_upper_est)) + 
+  #stat_summary(geom="ribbon", fun.data=mean_cl_normal, width=0.1, conf.int=0.95, fill="lightblue") +
+  #geom_ribbon(aes(ymin = ci_lower_est, ymax = ci_upper_est),    # shadowing cnf intervals 
+  #fill = "grey") + 
   geom_ribbon(alpha = 0.7, fill = "grey") + 
   geom_line(size = rel(0.5), colour = "darkred") + 
   ylim(3.5, 5.3) +

@@ -25,8 +25,8 @@ library(nlme) # for nlslist
 library(nlshelper) # for tidy(fit)
 #library(ggExtra)
 #library(ggalluvial)
-Sys.setlocale("LC_ALL","English") # data formatting
-memory.size()            # Checking your memory size
+Sys.setlocale("LC_ALL","English") # date formatting
+memory.size()            # Checking memory size
 memory.limit()           # Checking the set limit
 memory.limit(size=56000) # suggest for 64 bit
 options(stringsAsFactors = FALSE) # prevent factorizing caracters
