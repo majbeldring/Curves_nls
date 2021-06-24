@@ -29,7 +29,7 @@ options(stringsAsFactors = FALSE) # prevent factorizing caracters
 #-------------------------------------------------------
 # Loading data and preparing data:
 
-load("M:/PCR_data/curves_SCC.RData") # from PCR_data script
+# load("M:/PCR_data/curves_SCC.RData") # from data_tSCC script. Not saved, so run this script for data
 
 
 #---------------------------------------------------------------------------------

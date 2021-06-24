@@ -41,6 +41,18 @@ st <- list(a = 3.9, b = 0.0027, k = -1.94, d = 2.6)
 f_nls <- logSCC ~ a + b * DIM + exp(-(exp(k)) * DIM)*d | BES_ID
 
 
+#--------------------------------------------------------------------------------
+# test with upper and lower boundries:
+upper <- c(8,1,0,4)
+lower <- c(0,0,-4,0)
+
+f_neg4 <- nlsList(f_nls, df4_neg, start = sapply(st, mean),
+                    control = list(maxiter = 400, tol = 1e-05, minFactor = 1/1024, 
+                                   printEval = FALSE, warnOnly = TRUE), upper = upper, lower = lower)
+
+out <- coef(f_neg4)
+out <- cbind(BES_ID = rownames(out), out)
+
 #---------------------------------------------------------------------------------
 # Wilmink NLS on herd level with equation 8 graesboell:
 # if parameters not retrieved from .../nls_output.RData
@@ -50,6 +62,7 @@ f_nls <- logSCC ~ a + b * DIM + exp(-(exp(k)) * DIM)*d | BES_ID
 fit_pos2 <- nlsList(f_nls, df2_pos, start = sapply(st, mean),
                     control = list(maxiter = 400, tol = 1e-05, minFactor = 1/1024, 
                                    printEval = FALSE, warnOnly = TRUE))
+
 fit_neg2 <- nlsList(f_nls, df2_neg, start = sapply(st, mean),
                     control = list(maxiter = 400, tol = 1e-05, minFactor = 1/1024, 
                                    printEval = FALSE, warnOnly = TRUE))
@@ -82,11 +95,20 @@ out_neg3 <- coef(fit_neg3)
 out_pos4 <- coef(fit_pos4) 
 out_neg4 <- coef(fit_neg4)
 
+out_pos2 <- cbind(BES_ID = rownames(out_pos2), out_pos2)
+out_neg2 <- cbind(BES_ID = rownames(out_neg2), out_neg2)
+out_pos3 <- cbind(BES_ID = rownames(out_pos3), out_pos3)
+out_neg3 <- cbind(BES_ID = rownames(out_neg3), out_neg3)
+out_pos4 <- cbind(BES_ID = rownames(out_pos4), out_pos4)
+out_neg4 <- cbind(BES_ID = rownames(out_neg4), out_neg4)
+
 # evaluating parameters:
 
 summary(out_pos2) 
 # mean vs median: 
-# a+b: okay, k: 10^4 diff, d: 10^7 diff, 
+# a+b: okay, 
+# k: 10^4 diff, 
+# d: 10^7 diff, 
 # k+d: crazy low and high outliers
 summary(out_neg2) 
 # mean vs median: 
@@ -99,7 +121,7 @@ summary(out_pos3)
 # k: diff 10^5 , crazy high and lower outliers. d: 10^8 diff, crazy high and low
 summary(out_neg3) 
 # mean vs median:
-# a: diff ok, 10^2 outliers hogh and low. b: ok
+# a: diff ok, 10^2 outliers high and low. b: ok
 # k: diff 10^4 , crazy high and lower outliers. d: 10^6 diff, crazy high and low
 summary(out_pos4) 
 # mean vs median:

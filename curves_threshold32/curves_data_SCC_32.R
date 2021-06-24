@@ -2,9 +2,10 @@
 
 # Maj Beldring Henningsen, majbh@sund.ku.dk
 
-# preparing data for woods milk curves
-# note: data are called the same as for the SCC; 
+# preparing data for Wilmink SCC curves
+# note: data are called the same as for the MILK; 
 # so don't run SCC and milk simultaneous
+
 
 #-------------------------------------------------------
 # Packages and settings:
@@ -29,13 +30,13 @@ options(stringsAsFactors = FALSE) # prevent factorizing caracters
 #-------------------------------------------------------
 # Loading data and preparing data:
 
-load("M:/PCR_data/PCR_merge2.RData") 
+load("M:/PCR_data/PCR_merge.RData") 
 rm(df_pcr, df_curve); gc() 
 
 # pre-preparing data;remove dates and DYR_ID:
 df_model <- df_model %>% 
   filter(DIM < 306) %>%
-  #filter(DIM > 5) %>%
+  filter(DIM > 5) %>%
   dplyr::select(BES_ID, DYR_ID, PARITY, BREED, HERDTYPE, DIM, logSCC, 
                 MILK, IMI, DRY_TREAT, PCR_TEST, RES_MAJOR, OTHER_AB, TEAT_TREAT)
 
@@ -70,7 +71,8 @@ df2_pos <- df2 %>%
   mutate(count = n()) %>%
   filter(count > 200) %>%
   ungroup() %>%
-  dplyr::select(BES_ID, DIM, MILK)
+  #dplyr::select(BES_ID, DIM, logSCC)
+  dplyr::select(BES_ID, DYR_ID, DIM, logSCC)
 df2_pos$BES_ID <- factor(df2_pos$BES_ID) # keep only used levels by resetting the variable
 
 ### RES MAJOR NEG
@@ -80,7 +82,8 @@ df2_neg <- df2 %>%
   mutate(count = n()) %>%
   filter(count > 200) %>%
   ungroup() %>%
-  dplyr::select(BES_ID, DIM, MILK)
+  #dplyr::select(BES_ID, DIM, logSCC)
+  dplyr::select(BES_ID, DYR_ID, DIM, logSCC)
 df2_neg$BES_ID <- factor(df2_neg$BES_ID) # keep only used levels by resetting the variable
 
 dplyr::n_distinct(df2_pos$BES_ID) # 1141
@@ -104,7 +107,8 @@ df3_pos <- df3 %>%
   mutate(count = n()) %>%
   filter(count > 200) %>%
   ungroup() %>%
-  dplyr::select(BES_ID, DIM, MILK)
+  #dplyr::select(BES_ID, DIM, logSCC)
+  dplyr::select(BES_ID, DYR_ID, DIM, logSCC)
 df3_pos$BES_ID <- factor(df3_pos$BES_ID) # keep only used levels by resetting the variable
 
 ### RES MAJOR NEG
@@ -114,7 +118,8 @@ df3_neg <- df3 %>%
   mutate(count = n()) %>%
   filter(count > 200) %>%
   ungroup() %>%
-  dplyr::select(BES_ID, DIM, MILK)
+  #dplyr::select(BES_ID, DIM, logSCC)
+  dplyr::select(BES_ID, DYR_ID, DIM, logSCC)
 df3_neg$BES_ID <- factor(df3_neg$BES_ID) # keep only used levels by resetting the variable
 
 dplyr::n_distinct(df3_pos$BES_ID) # 416
@@ -136,7 +141,8 @@ df4_pos <- df4 %>%
   mutate(count = n()) %>%
   filter(count > 200) %>%
   ungroup() %>%
-  dplyr::select(BES_ID, DIM, MILK)
+  #dplyr::select(BES_ID, DIM, logSCC)
+   dplyr::select(BES_ID, DYR_ID, DIM, logSCC)
 df4_pos$BES_ID <- factor(df4_pos$BES_ID) # keep only used levels by resetting the variable
 
 ### RES MAJOR NEG
@@ -146,11 +152,20 @@ df4_neg <- df4 %>%
   mutate(count = n()) %>%
   filter(count > 200) %>%
   ungroup() %>%
-  dplyr::select(BES_ID, DIM, MILK)
+  #dplyr::select(BES_ID, DIM, logSCC)
+  dplyr::select(BES_ID, DYR_ID, DIM, logSCC)
 df4_neg$BES_ID <- factor(df4_neg$BES_ID) # keep only used levels by resetting the variable
 
 dplyr::n_distinct(df4_pos$BES_ID) # 303
 
+#--------------------------------------------------------
+# count for article
+
+dplyr::n_distinct(df2_pos$BES_ID) # 3474 herds
+dplyr::n_distinct(df2_pos$DYR_ID) # 997.784
+
+dplyr::n_distinct(df2_neg$BES_ID) # 3474 herds
+dplyr::n_distinct(df2_neg$DYR_ID) # 997.784
 
 
-# save.image("M:/PCR_data/curves_MILK.RData") # bot saved
+save.image("M:/PCR_data/curves_SCC.RData")

@@ -27,7 +27,7 @@ options(stringsAsFactors = FALSE) # prevent factorizing caracters
 #-------------------------------------------------------
 # Loading data and preparing data:
 
-load("M:/PCR_data/wilmink_SCC_out.RData") # from PCR_data script
+load("M:/PCR_data/wilmink_SCC_out.RData") # from NLSlist_running_crazy_outliers
 
 #-------------------------------------------------------------------------------------------
 # plot on herd level
@@ -39,6 +39,7 @@ logSCC_func <- function(DIM, a,b,k,d)
 #------------------------------------------------------------------------------------------
 # Percentile plot:
 
+# Note, must remove BES_ID before possibe
 
 ### PARITY 2 POS and NEG
 # POS

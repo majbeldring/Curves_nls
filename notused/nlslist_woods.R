@@ -29,7 +29,7 @@ options(stringsAsFactors = FALSE) # prevent factorizing caracters
 #-------------------------------------------------------
 # Loading data and preparing data:
 
-load("M:/PCR_data/curves_MILK.RData") # from PCR_data script
+# load("M:/PCR_data/curves_MILK.RData") # from data_MILK script - not saved, so must run this script
 
 # note: SCC and milk data are named the same, so don't run woods and wilmink at the same time
 

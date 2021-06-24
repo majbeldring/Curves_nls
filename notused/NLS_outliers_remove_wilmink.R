@@ -2,40 +2,13 @@
 
 # Maj Beldring Henningsen, majbh@sund.ku.dk
 
-# outliers removal and identification for creating weird farms curves
-
-### removal:
-# check guide in tools -> outliers
-# remove lower and higher qauntile and test again with 
-
-
-### Outlier identification
-# prep for visualizing weird farms
-
-# from list with outliers:
-
-# create:
-## 2 list for each parameter - one with upper outliers and one with lower
-## take lower 10 percent
-## 8 lists in total
-
-## 1. create boxplot for every 10 day;
-## 2. ecdf curve
-
+# outliers removal, plot and compare
 
 #-------------------------------------------------------
 # Packages and settings:
 
 library(tidyverse)
-library(gridExtra)
-library(data.table)
-library(plotly)
-library(GGally)
-#library(tidymodels)
-#library(nlstools) # for bootstrapping
-#library(nlme) # for nlslist
-#library(ggExtra)
-#library(ggalluvial)
+
 Sys.setlocale("LC_ALL","English") # date formatting
 memory.size()            # Checking your memory size
 memory.limit()           # Checking the set limit
@@ -48,14 +21,82 @@ options(stringsAsFactors = FALSE) # prevent factorizing caracters
 
 # load: 
 load("M:/PCR_data/wilmink_SCC_out.RData") # loading parameter output from PCR_nlslist
+rm(fit_neg2, fit_neg3, fit_neg4, fit_pos2, fit_pos3, fit_pos4); gc()
+
+# tets throughout with df2, pos and neg:
+
+#------------------------------------------------------------------
+# Tukey outlier definition:
+# it is 1.5 times the interquartile range greater than the third quartile (Q3) 
+# or 1.5 times the interquartile range less than the first quartile (Q1)
+
+# create outlier function for df:
+outliers <- function(x) { 
+  Q1 <- quantile(x, probs=.25) 
+  Q3 <- quantile(x, probs=.75) 
+  iqr = Q3-Q1 
+  
+  upper_limit = Q3 + (iqr*1.5) 
+  lower_limit = Q1 - (iqr*1.5) 
+  
+  x > upper_limit | x < lower_limit 
+} 
+
+remove_outliers <- function(df, cols = names(df)) { 
+  for (col in cols) { 
+    df <- df[!outliers(df[[col]]),] 
+  } 
+  df 
+} 
 
 
-#---------------------------------------------------------------------------------
 
-# if needed:
-# out_4pos$BES_ID <- rownames(out_4pos)
+df <- out_pos2
+df <- remove_outliers(df, c('a', 'b', 'k', 'd')) 
 
-#------------------------------------------------------------------------------------
+# loosing 527-317 observations = 190 observations. Almost 1/3
+
+
+pos2_mean <- out_pos2 %>% 
+  summarise(across(everything(), mean))
+
+pos2_mean %>% 
+  #' join parameters with x-axis (`DIM`)
+  crossing(DIM = seq_len(305)) %>% 
+  #' calculate the proper `logSCC`
+  mutate(logSCC = pmap_dbl(select(., DIM, a,b,k,d), logSCC_func)) %>% {
+    ggplot(., aes(DIM, logSCC)) + 
+      # aes(group = BES_ID) +
+      #aes(group = pctile) +
+      #aes(color = median) +
+      geom_line() +
+      
+      #labs(caption = "PCR negative, parity 2") +
+      ggtitle("mean of parametres - SCC Parity 2: PCR POS") +
+      
+      ggpubr::theme_classic2() +
+      NULL
+  } %>% 
+  plotly::ggplotly()
+
+
+#----------------------------------------------------------------------
+# plot output
+
+# define wilmink eq 8:
+logSCC_func <- function(DIM, a,b,k,d) 
+  a + b * DIM + exp(-(exp(k)) * DIM)*d 
+
+
+#####################################################################################
+#####################################################################################
+
+
+
+# Other approaches plotting outliers
+
+
+
 # output
 
 #lines(predict(fit_pos4)~df_pos$DIM,col="purple")
@@ -67,11 +108,23 @@ out_pos2 %>%
   tidy(out_pos2)
 dplyr::n_distinct(df2_pos$BES_ID)
 
+
+#---------------------------------------------------------------------------
+# identify outliers with rstatix:
 library(rstatix)
-out_pos2 %>%
+
+
+extreme_pos2 <- out_pos2 %>%
   identify_outliers("a")
+
+extreme_pos2k <- out_pos2 %>%
+  identify_outliers("b")
+
+out_pos2 %>%
+  identify_outliers("b")
+
 # replace row number with the BES_ID
-# create a list with thre TRUE to extreme outlier
+# create a list with the TRUE to extreme outlier
 # save as data: a data frame for each parameter in each output = 24 data frames
 # seperate into lower or higher outlier -> 48 data frames
 # create curves for all these...
@@ -81,16 +134,14 @@ ggplot(out_pos3) +
   geom_boxplot(fill = "#0c4c8a") +
   theme_minimal()
 
+out2_pos_extreme <- is_extreme(out_pos2$k)
 
-
-
-is_extreme(out_pos2$k)
 out_pos2 %>%
   as_tibble() %>% 
-  is_extreme(out_pos2)
+  is_extreme(out_pos2$k)
 
 
-
+#------------------------------------------------------------------------
 boxplot.stats(out_pos2$a)$out
 
 # identify outliers in parameter output:
@@ -109,8 +160,9 @@ out_d1 <- boxplot.stats(out_4pos$d)$out
 out_d <- which(out_4pos$d %in% c(out_d1)); out_d
 
 
+#-----------------------------------------------------------------
+# manuel filter for removing outliers
 
-# manuel filter for outliers
 filter_4pos <- out_4pos %>%
   filter(a>1, a<6) %>%
   filter(b>0.001, b<0.005) %>%
@@ -119,9 +171,16 @@ filter_4pos <- out_4pos %>%
 
 
 
-#-------------------------------------------------------
-# plot the crazy parameters:
+#-----------------------------------------------------------------
+# testing outlier detection:
 
+out_k <- which(out_4pos$k %in% c(out_k1))
+out_k
+
+
+
+#-------------------------------------------------------
+# individual herd plots of the crazy parameters:
 
 
 df_51 <- df4_pos %>%
@@ -239,6 +298,4 @@ p2_weird <- ggplot(df2_weird, aes(x = DIM, y = logSCC)) +
 p2_weird
 
 
-# testing outlier detection:
-out_k <- which(out_4pos$k %in% c(out_k1))
-out_k
+

@@ -156,4 +156,4 @@ dplyr::n_distinct(df4_pos$BES_ID) # 303
 
 
 
-save.image("M:/PCR_data/curves_tSCC.RData")
+# save.image("M:/PCR_data/curves_tSCC.RData") # not saved

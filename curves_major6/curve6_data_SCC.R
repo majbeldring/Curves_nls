@@ -2,23 +2,16 @@
 
 # Maj Beldring Henningsen, majbh@sund.ku.dk
 
-# preparing data for woods milk curves
-# note: data are called the same as for the SCC; 
-# so don't run SCC and milk simultaneous
+# preparing data for Wilmink SCC curves
+# 6 pathogens
 
-#-------------------------------------------------------
-# Packages and settings:
+# Packages and settings:---------------------------------------
+
 
 library(tidyverse)
 library(gridExtra)
 library(data.table)
-#library(plotly)
-#library(GGally)
-#library(tidymodels)
-#library(nlstools) # for bootstrapping
-#library(nlme) # for nlslist
-#library(ggExtra)
-#library(ggalluvial)
+
 Sys.setlocale("LC_ALL","English") # date formatting
 memory.size()            # Checking your memory size
 memory.limit()           # Checking the set limit
@@ -26,34 +19,30 @@ memory.limit(size=56000) # suggest for 64 bit
 options(stringsAsFactors = FALSE) # prevent factorizing caracters
 
 
-#-------------------------------------------------------
-# Loading data and preparing data:
+# Loading data and preparing data ---------------------------------------
 
-load("M:/PCR_data/PCR_merge2.RData") 
+
+load("M:/PCR_data/curve6_merge.RData") 
 rm(df_pcr, df_curve); gc() 
 
 # pre-preparing data;remove dates and DYR_ID:
 df_model <- df_model %>% 
   filter(DIM < 306) %>%
-  #filter(DIM > 5) %>%
+  filter(DIM > 5) %>%
   dplyr::select(BES_ID, DYR_ID, PARITY, BREED, HERDTYPE, DIM, logSCC, 
                 MILK, IMI, DRY_TREAT, PCR_TEST, RES_MAJOR, OTHER_AB, TEAT_TREAT)
 
 
 # descriptives on over all data:
 dplyr::n_distinct(df_model$BES_ID) # 3474 herds
-dplyr::n_distinct(df_model$DYR_ID) # 997.784
+dplyr::n_distinct(df_model$DYR_ID) # 997.406
 
 
 summary(df_model)
 
-#---------------------------------------------------------------------
-# Specify data:
-# conventionel, holstein, DIM < 306, Must have PCR test
 
-# divided into 3 parity groups
+# Divide into Parity groups, conventionel herds, Holstein -----------------------
 
-#-------------------------------------------------------------
 ### PARITY 2: 
 df2 <- df_model %>% 
   filter(PCR_TEST == 1) %>%
@@ -70,7 +59,8 @@ df2_pos <- df2 %>%
   mutate(count = n()) %>%
   filter(count > 200) %>%
   ungroup() %>%
-  dplyr::select(BES_ID, DIM, MILK)
+  dplyr::select(BES_ID, DIM, logSCC)
+  #dplyr::select(BES_ID, DYR_ID, DIM, logSCC)
 df2_pos$BES_ID <- factor(df2_pos$BES_ID) # keep only used levels by resetting the variable
 
 ### RES MAJOR NEG
@@ -80,14 +70,12 @@ df2_neg <- df2 %>%
   mutate(count = n()) %>%
   filter(count > 200) %>%
   ungroup() %>%
-  dplyr::select(BES_ID, DIM, MILK)
+  dplyr::select(BES_ID, DIM, logSCC)
+  #dplyr::select(BES_ID, DYR_ID, DIM, logSCC)
 df2_neg$BES_ID <- factor(df2_neg$BES_ID) # keep only used levels by resetting the variable
 
-dplyr::n_distinct(df2_pos$BES_ID) # 1141
-summary(df2_pos)
 
 
-#-------------------------------------------------------------
 ### PARITY 3: 
 df3 <- df_model %>% 
   filter(PCR_TEST == 1) %>%
@@ -104,7 +92,8 @@ df3_pos <- df3 %>%
   mutate(count = n()) %>%
   filter(count > 200) %>%
   ungroup() %>%
-  dplyr::select(BES_ID, DIM, MILK)
+  dplyr::select(BES_ID, DIM, logSCC)
+  #dplyr::select(BES_ID, DYR_ID, DIM, logSCC)
 df3_pos$BES_ID <- factor(df3_pos$BES_ID) # keep only used levels by resetting the variable
 
 ### RES MAJOR NEG
@@ -114,12 +103,15 @@ df3_neg <- df3 %>%
   mutate(count = n()) %>%
   filter(count > 200) %>%
   ungroup() %>%
-  dplyr::select(BES_ID, DIM, MILK)
+  dplyr::select(BES_ID, DIM, logSCC)
+  #dplyr::select(BES_ID, DYR_ID, DIM, logSCC)
 df3_neg$BES_ID <- factor(df3_neg$BES_ID) # keep only used levels by resetting the variable
 
-dplyr::n_distinct(df3_pos$BES_ID) # 416
+dplyr::n_distinct(df3_pos$BES_ID) # 451
+dplyr::n_distinct(df3_neg$BES_ID) # 343
 
-#-------------------------------------------------------------
+
+
 ### PARITY 4: 
 df4 <- df_model %>% 
   filter(PCR_TEST == 1) %>%
@@ -136,7 +128,8 @@ df4_pos <- df4 %>%
   mutate(count = n()) %>%
   filter(count > 200) %>%
   ungroup() %>%
-  dplyr::select(BES_ID, DIM, MILK)
+  dplyr::select(BES_ID, DIM, logSCC)
+  #dplyr::select(BES_ID, DYR_ID, DIM, logSCC)
 df4_pos$BES_ID <- factor(df4_pos$BES_ID) # keep only used levels by resetting the variable
 
 ### RES MAJOR NEG
@@ -146,11 +139,51 @@ df4_neg <- df4 %>%
   mutate(count = n()) %>%
   filter(count > 200) %>%
   ungroup() %>%
-  dplyr::select(BES_ID, DIM, MILK)
+  dplyr::select(BES_ID, DIM, logSCC)
+  #dplyr::select(BES_ID, DYR_ID, DIM, logSCC)
 df4_neg$BES_ID <- factor(df4_neg$BES_ID) # keep only used levels by resetting the variable
 
-dplyr::n_distinct(df4_pos$BES_ID) # 303
+dplyr::n_distinct(df4_pos$BES_ID) # 329
+dplyr::n_distinct(df4_neg$BES_ID) # 220
 
 
 
-# save.image("M:/PCR_data/curves_MILK.RData") # bot saved
+# count for article -----------------------------------------
+
+# we also need the animals, so wait untill animals is un-selected
+
+# df2_pos and df2_neg:
+summary(df2_pos)
+dplyr::n_distinct(df2_pos$BES_ID) # 567
+dplyr::n_distinct(df2_pos$DYR_ID) # 997.784
+
+summary(df2_neg)
+dplyr::n_distinct(df2_neg$BES_ID) # 522
+dplyr::n_distinct(df2_neg$DYR_ID) # 997.784
+
+# df3_pos and df3_neg:
+summary(df3_pos)
+dplyr::n_distinct(df3_pos$BES_ID) # 567
+dplyr::n_distinct(df3_pos$DYR_ID) # 997.784
+
+summary(df3_neg)
+dplyr::n_distinct(df3_neg$BES_ID) # 522
+dplyr::n_distinct(df3_neg$DYR_ID) # 997.784
+
+
+# df4_pos and df4_neg:
+summary(df4_pos)
+dplyr::n_distinct(df4_pos$BES_ID) # 567
+dplyr::n_distinct(df4_pos$DYR_ID) # 997.784
+
+summary(df2_neg)
+dplyr::n_distinct(df4_neg$BES_ID) # 522
+dplyr::n_distinct(df4_neg$DYR_ID) # 997.784
+
+
+
+
+
+
+save.image("M:/PCR_data/curves6_SCC.RData")
+
